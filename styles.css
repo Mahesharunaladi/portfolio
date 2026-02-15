@@ -359,7 +359,18 @@ section {
     overflow: hidden;
 }
 
-/* Unique gradients for each project */
+.project-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.project-card:hover .project-img {
+    transform: scale(1.1);
+}
+
+/* Unique gradients for each project (fallback) */
 .project-card:nth-child(1) .project-image {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -408,6 +419,8 @@ section {
         radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
     opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .project-overlay {
@@ -422,6 +435,7 @@ section {
     justify-content: center;
     opacity: 0;
     transition: var(--transition);
+    z-index: 2;
 }
 
 .project-card:hover .project-overlay {
