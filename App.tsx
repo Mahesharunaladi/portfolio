@@ -278,39 +278,52 @@ export default function App() {
 }
 
 function Model3D() {
-  // Public demo GLB - replace with your own hosted model URL if you have one
-  const modelUrl = '/models/samurai_demo.glb';
-  try {
-    const { scene } = useGLTF(modelUrl as string);
-    return <primitive object={scene} scale={1.6} position={[0, -0.6, 0]} />;
-  } catch (e) {
-    return (
-      <Html center>
-        <div className="text-gray-500 text-sm">3D model not available</div>
-      </Html>
-    );
-  }
+  // Fallback to placeholder image when 3D model is not available
+  return (
+    <Html center>
+      <div className="w-full h-full flex items-center justify-center">
+        <img 
+          src="https://images.unsplash.com/photo-1599725427382-835adc0b6862?auto=format&fit=crop&q=80&w=800" 
+          alt="Samurai Placeholder"
+          className="w-full h-full object-contain rounded-lg filter grayscale hover:grayscale-0 transition-all duration-1000"
+        />
+      </div>
+    </Html>
+  );
 }
 
 function GitHubRepos({ username }: { username: string }) {
   const [repos, setRepos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
-    fetch(`https://api.github.com/users/${username}/repos?per_page=9&sort=updated`)
+    setLoading(true);
+    // Fetch all repos (increase per_page to get more results)
+    fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated&type=all`)
       .then((r) => r.json())
       .then((data) => {
         if (!Array.isArray(data)) return;
-        if (mounted) setRepos(data.slice(0, 9));
+        if (mounted) {
+          setRepos(data);
+          setLoading(false);
+        }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('GitHub fetch error:', err);
+        if (mounted) setLoading(false);
+      });
     return () => {
       mounted = false;
     };
   }, [username]);
 
+  if (loading) {
+    return <div className="col-span-full p-12 text-gray-400 text-center">Loading repositories...</div>;
+  }
+
   if (repos.length === 0) {
-    return <div className="col-span-full p-12 text-gray-500">No repositories found.</div>;
+    return <div className="col-span-full p-12 text-gray-500 text-center">No repositories found.</div>;
   }
 
   return (
@@ -325,10 +338,12 @@ function GitHubRepos({ username }: { username: string }) {
           className="bg-brand-bg p-12 lg:p-16 flex flex-col transition-colors group cursor-pointer"
         >
           <div className="flex justify-between items-start mb-8 text-xs font-mono text-gray-500">
-            <span>{r.name.toUpperCase()}</span>
+            <span>{r.name.toUpperCase().substring(0, 20)}</span>
             <ArrowUpRight size={18} className="group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
           </div>
-          <h3 className="text-2xl font-display font-black mb-4 uppercase italic group-hover:text-brand-accent transition-colors">{r.description || r.name}</h3>
+          <h3 className="text-2xl font-display font-black mb-4 uppercase italic group-hover:text-brand-accent transition-colors line-clamp-2">
+            {r.description || r.name}
+          </h3>
           <div className="flex justify-between items-center mt-auto">
             <span className="text-[10px] font-mono uppercase tracking-widest text-gray-400 italic">{r.language || 'Code'}</span>
             <span className="text-[9px] font-mono text-gray-600">{new Date(r.updated_at).toLocaleDateString()}</span>
