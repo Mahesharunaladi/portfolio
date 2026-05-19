@@ -228,20 +228,19 @@ export default function App() {
       </main>
 
       {/* Footer Strip */}
-      <footer className="h-[80px] border-t border-brand-line bg-brand-bg relative z-50 flex items-center px-6 md:px-12 justify-between text-[10px] font-mono text-gray-600 tracking-widest uppercase italic">
+      <footer className="h-[100px] border-t border-brand-line bg-brand-bg relative z-50 flex items-center px-6 md:px-12 justify-between text-[10px] font-mono text-gray-600 tracking-widest uppercase italic">
         <div className="flex items-center gap-6">
           <div className="h-2 w-2 rounded-full bg-brand-accent animate-pulse" />
-          <span>MAHESH ARUN ALADI // ARCHIVE &copy; 2026 - SECURED</span>
+          <span>MAHESH ARUN ALADI // ARCHIVE &copy; 2026</span>
         </div>
-        <div className="hidden lg:flex gap-12">
-          <a href="#" className="hover:text-white transition-colors">Digital Autopsy</a>
-          <a href="#" className="hover:text-white transition-colors">Manifesto</a>
-          <a href="#" className="hover:text-white transition-colors">Log_Out</a>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-sm font-bold">Contact</div>
+          <div className="text-xs text-gray-400">email: <a href="mailto:hello@mahesharunaladi.com" className="hover:text-white">hello@mahesharunaladi.com</a></div>
+          <div className="text-xs text-gray-400">phone: <a href="tel:+1234567890" className="hover:text-white">+1 234 567 890</a></div>
         </div>
-        <div className="flex gap-10">
-          <Mail size={18} className="hover:text-brand-accent cursor-pointer transition-colors" />
-          <Share2 size={18} className="hover:text-brand-accent cursor-pointer transition-colors" />
-          <Code size={18} className="hover:text-brand-accent cursor-pointer transition-colors" />
+        <div className="flex gap-6">
+          <a href="https://github.com/Mahesharunaladi" target="_blank" rel="noreferrer" className="hover:text-brand-accent">GitHub</a>
+          <a href="https://www.linkedin.com/in/mahesharunaladi" target="_blank" rel="noreferrer" className="hover:text-brand-accent">LinkedIn</a>
         </div>
       </footer>
 
