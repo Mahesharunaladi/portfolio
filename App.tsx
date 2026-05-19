@@ -12,7 +12,9 @@ import {
   ArrowUpRight,
   Search
 } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Html } from '@react-three/drei';
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -67,19 +69,27 @@ export default function App() {
           {/* Main Visual: Samurai Mask */}
           <div className="flex-1 relative bg-black flex items-center justify-center p-12 overflow-hidden border-b lg:border-b-0 lg:border-r border-brand-line group">
             <div className="scan-line pointer-events-none opacity-10" />
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               className="relative w-full max-w-2xl aspect-[3/4] lg:aspect-square"
             >
-              <img 
-                src="https://images.unsplash.com/photo-1599725427382-835adc0b6862?auto=format&fit=crop&q=80&w=1000" 
-                alt="Samurai Demon Mask"
-                className="w-full h-full object-contain filter group-hover:brightness-125 transition-all duration-1000 grayscale hover:grayscale-0"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+              {/* 3D Model Canvas - loads a public GLB as a demo Samurai placeholder. Replace URL with your model when available. */}
+              <div className="w-full h-full">
+                <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-gray-500">Loading 3D model...</div>}>
+                  <Canvas camera={{ position: [0, 0, 3], fov: 45 }}>
+                    <ambientLight intensity={0.8} />
+                    <directionalLight position={[5, 5, 5]} intensity={1} />
+                    <Suspense fallback={null}>
+                      <Model3D />
+                    </Suspense>
+                    <OrbitControls enablePan={false} enableZoom={true} />
+                  </Canvas>
+                </Suspense>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
             </motion.div>
 
             {/* Overlays */}
@@ -136,7 +146,7 @@ export default function App() {
         </section>
 
         {/* Blog / Portfolio Grid Section */}
-        <section id="my-project" className="bg-brand-bg py-32 px-6 md:px-12 lg:px-24">
+  <section id="my-project" className="bg-brand-bg py-32 px-6 md:px-12 lg:px-24">
           <div className="flex flex-col lg:flex-row justify-between items-end gap-12 mb-24">
             <div>
               <div className="text-xs font-mono text-brand-accent mb-4 tracking-[0.4em] italic uppercase">// Portfolio Archive</div>
@@ -148,30 +158,7 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-brand-line">
-            {[
-              { id: "01", title: "THE PSYCHOLOGY OF DARK INTERFACES", category: "Theoretical Post", date: "FEB 2026" },
-              { id: "02", title: "OPTIMIZING 3D WORKFLOWS FOR WEB", category: "Technical Guide", date: "MAR 2026" },
-              { id: "03", title: "THE RISE OF DIGITAL DEMONISM", category: "Cultural Analysis", date: "APR 2026" },
-              { id: "04", title: "INTERFACE ARCHITECTURE STUDY", category: "Case Study", date: "APR 2026" },
-              { id: "05", title: "MAINTAINING SYMMETRY IN CHAOS", category: "Design Principles", date: "MAY 2026" },
-              { id: "06", title: "FUTURE REPOSITORY PROTOCOLS", category: "System Log", date: "MAY 2026" },
-            ].map((work) => (
-              <motion.div 
-                key={work.id}
-                whileHover={{ backgroundColor: "rgba(255, 42, 0, 0.05)" }}
-                className="bg-brand-bg p-12 lg:p-16 flex flex-col transition-colors group cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-20 text-xs font-mono text-gray-500">
-                  <span>REPOSITORY_{work.id}</span>
-                  <ArrowUpRight size={18} className="group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
-                </div>
-                <h3 className="text-4xl font-display font-black mb-4 uppercase italic group-hover:text-brand-accent transition-colors">{work.title}</h3>
-                <div className="flex justify-between items-center mt-auto">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-gray-400 italic">{work.category}</span>
-                  <span className="text-[9px] font-mono text-gray-600">{work.date}</span>
-                </div>
-              </motion.div>
-            ))}
+            <GitHubRepos username="Mahesharunaladi" />
           </div>
         </section>
 
@@ -288,5 +275,67 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function Model3D() {
+  // Public demo GLB - replace with your own hosted model URL if you have one
+  const modelUrl = '/models/samurai_demo.glb';
+  try {
+    const { scene } = useGLTF(modelUrl as string);
+    return <primitive object={scene} scale={1.6} position={[0, -0.6, 0]} />;
+  } catch (e) {
+    return (
+      <Html center>
+        <div className="text-gray-500 text-sm">3D model not available</div>
+      </Html>
+    );
+  }
+}
+
+function GitHubRepos({ username }: { username: string }) {
+  const [repos, setRepos] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch(`https://api.github.com/users/${username}/repos?per_page=9&sort=updated`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data)) return;
+        if (mounted) setRepos(data.slice(0, 9));
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [username]);
+
+  if (repos.length === 0) {
+    return <div className="col-span-full p-12 text-gray-500">No repositories found.</div>;
+  }
+
+  return (
+    <>
+      {repos.map((r) => (
+        <motion.a
+          key={r.id}
+          href={r.html_url}
+          target="_blank"
+          rel="noreferrer"
+          whileHover={{ backgroundColor: 'rgba(255, 42, 0, 0.05)' }}
+          className="bg-brand-bg p-12 lg:p-16 flex flex-col transition-colors group cursor-pointer"
+        >
+          <div className="flex justify-between items-start mb-8 text-xs font-mono text-gray-500">
+            <span>{r.name.toUpperCase()}</span>
+            <ArrowUpRight size={18} className="group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+          </div>
+          <h3 className="text-2xl font-display font-black mb-4 uppercase italic group-hover:text-brand-accent transition-colors">{r.description || r.name}</h3>
+          <div className="flex justify-between items-center mt-auto">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-gray-400 italic">{r.language || 'Code'}</span>
+            <span className="text-[9px] font-mono text-gray-600">{new Date(r.updated_at).toLocaleDateString()}</span>
+          </div>
+        </motion.a>
+      ))}
+    </>
   );
 }
