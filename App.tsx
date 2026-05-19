@@ -12,9 +12,7 @@ import {
   ArrowUpRight,
   Search
 } from 'lucide-react';
-import React, { useState, useEffect, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Html } from '@react-three/drei';
+import React, { useState, useEffect } from 'react';
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,18 +74,13 @@ export default function App() {
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               className="relative w-full max-w-2xl aspect-[3/4] lg:aspect-square"
             >
-              {/* 3D Model Canvas - loads a public GLB as a demo Samurai placeholder. Replace URL with your model when available. */}
+              {/* Samurai Image Display */}
               <div className="w-full h-full">
-                <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-gray-500">Loading 3D model...</div>}>
-                  <Canvas camera={{ position: [0, 0, 3], fov: 45 }}>
-                    <ambientLight intensity={0.8} />
-                    <directionalLight position={[5, 5, 5]} intensity={1} />
-                    <Suspense fallback={null}>
-                      <Model3D />
-                    </Suspense>
-                    <OrbitControls enablePan={false} enableZoom={true} />
-                  </Canvas>
-                </Suspense>
+                <img 
+                  src="/samurai.png" 
+                  alt="Samurai Demon Mask"
+                  className="w-full h-full object-contain filter group-hover:brightness-125 transition-all duration-1000 grayscale hover:grayscale-0"
+                />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
             </motion.div>
@@ -277,19 +270,6 @@ export default function App() {
   );
 }
 
-function Model3D() {
-  // Display samurai image instead of 3D model
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-black">
-      <img 
-        src="https://images.unsplash.com/photo-1599725427382-835adc0b6862?auto=format&fit=crop&q=80&w=1000" 
-        alt="Samurai Demon Mask"
-        className="w-full h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-1000"
-      />
-    </div>
-  );
-}
-
 function GitHubRepos({ username }: { username: string }) {
   const [repos, setRepos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -317,7 +297,12 @@ function GitHubRepos({ username }: { username: string }) {
         }
         
         if (mounted) {
-          setRepos(allRepos);
+          // Filter out unwanted repositories
+          const excludeRepos = ['jenkins', '20231CDV0034'];
+          const filtered = allRepos.filter(repo => 
+            !excludeRepos.some(exclude => repo.name.toLowerCase().includes(exclude.toLowerCase()))
+          );
+          setRepos(filtered);
           setLoading(false);
         }
       } catch (err) {
