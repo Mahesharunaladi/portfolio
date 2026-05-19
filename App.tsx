@@ -278,17 +278,15 @@ export default function App() {
 }
 
 function Model3D() {
-  // Fallback to placeholder image when 3D model is not available
+  // Display samurai image instead of 3D model
   return (
-    <Html center>
-      <div className="w-full h-full flex items-center justify-center">
-        <img 
-          src="https://images.unsplash.com/photo-1599725427382-835adc0b6862?auto=format&fit=crop&q=80&w=800" 
-          alt="Samurai Placeholder"
-          className="w-full h-full object-contain rounded-lg filter grayscale hover:grayscale-0 transition-all duration-1000"
-        />
-      </div>
-    </Html>
+    <div className="w-full h-full flex items-center justify-center bg-black">
+      <img 
+        src="https://images.unsplash.com/photo-1599725427382-835adc0b6862?auto=format&fit=crop&q=80&w=1000" 
+        alt="Samurai Demon Mask"
+        className="w-full h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-1000"
+      />
+    </div>
   );
 }
 
@@ -298,28 +296,44 @@ function GitHubRepos({ username }: { username: string }) {
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
-    // Fetch all repos (increase per_page to get more results)
-    fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated&type=all`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!Array.isArray(data)) return;
+    const fetchAllRepos = async () => {
+      try {
+        let allRepos: any[] = [];
+        let page = 1;
+        let hasMore = true;
+        
+        while (hasMore) {
+          const response = await fetch(
+            `https://api.github.com/users/${username}/repos?per_page=100&page=${page}&sort=updated&direction=desc`
+          );
+          const data = await response.json();
+          
+          if (!Array.isArray(data) || data.length === 0) {
+            hasMore = false;
+          } else {
+            allRepos = [...allRepos, ...data];
+            page++;
+          }
+        }
+        
         if (mounted) {
-          setRepos(data);
+          setRepos(allRepos);
           setLoading(false);
         }
-      })
-      .catch((err) => {
-        console.error('GitHub fetch error:', err);
-        if (mounted) setLoading(false);
-      });
+      } catch (err) {
+        console.error('Error fetching repos:', err);
+        setLoading(false);
+      }
+    };
+    
+    fetchAllRepos();
     return () => {
       mounted = false;
     };
   }, [username]);
 
   if (loading) {
-    return <div className="col-span-full p-12 text-gray-400 text-center">Loading repositories...</div>;
+    return <div className="col-span-full p-12 text-gray-500 text-center">Loading repositories...</div>;
   }
 
   if (repos.length === 0) {
@@ -338,12 +352,10 @@ function GitHubRepos({ username }: { username: string }) {
           className="bg-brand-bg p-12 lg:p-16 flex flex-col transition-colors group cursor-pointer"
         >
           <div className="flex justify-between items-start mb-8 text-xs font-mono text-gray-500">
-            <span>{r.name.toUpperCase().substring(0, 20)}</span>
+            <span>{r.name.toUpperCase()}</span>
             <ArrowUpRight size={18} className="group-hover:text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
           </div>
-          <h3 className="text-2xl font-display font-black mb-4 uppercase italic group-hover:text-brand-accent transition-colors line-clamp-2">
-            {r.description || r.name}
-          </h3>
+          <h3 className="text-2xl font-display font-black mb-4 uppercase italic group-hover:text-brand-accent transition-colors">{r.description || r.name}</h3>
           <div className="flex justify-between items-center mt-auto">
             <span className="text-[10px] font-mono uppercase tracking-widest text-gray-400 italic">{r.language || 'Code'}</span>
             <span className="text-[9px] font-mono text-gray-600">{new Date(r.updated_at).toLocaleDateString()}</span>
